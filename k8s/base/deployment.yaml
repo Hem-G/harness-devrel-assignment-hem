@@ -1,27 +1,61 @@
-apiVersion: apps/v1
-kind: Deployment
+# -----------------------------------------------------------
+# 🧠 What this file does
+# -----------------------------------------------------------
+# 
+# This file tells Kubernetes *how to run and manage your app*.
+#
+# This file tells Kubernetes to run one copy of the app (myservice) from the container image ghcr.io/hem-g/myservice:0.1.0.
+# It checks every few seconds whether the app is healthy by visiting /health.
+# If the app fails or stops responding, Kubernetes restarts it automatically.
+# This ensures your app stays available at all times — even if something crashes.
+#
+# It defines a “Deployment” — basically a manager that makes sure
+# your app (called “myservice”) is always running, healthy, and up to date.
+#
+# Kubernetes will:
+#   - Start 1 copy (replica) of your container
+#   - Restart it automatically if it crashes
+#   - Replace it safely when a new version of the image is deployed
+# -----------------------------------------------------------
+
+apiVersion: apps/v1  # The version of the Kubernetes API used for deployments
+kind: Deployment      # The type of resource we're creating (a Deployment)
+
 metadata:
-  name: myservice
+  name: myservice      # The name of this Deployment
   labels:
-    app: myservice
+    app: myservice     # A tag (label) used to identify related resources
+
 spec:
-  replicas: 1
+  replicas: 1          # Number of copies (pods) of the app to run (1 for now)
+
+  # This tells Kubernetes which pods belong to this deployment
   selector:
     matchLabels:
       app: myservice
+
+  # This section describes *how each pod should look*
   template:
     metadata:
       labels:
-        app: myservice
+        app: myservice  # Label for the pod (used to connect to services below)
+
     spec:
+      # List of containers to run inside each pod
       containers:
-      - name: myservice
-        image: ghcr.io/hem-g/myservice:0.1.0
+      - name: myservice   # The name of the container (same as the app)
+        image: ghcr.io/hem-g/myservice:0.1.0  # The Docker image to run
+                                              # (stored on GitHub Container Registry)
+
         ports:
-        - containerPort: 8080
+        - containerPort: 8080  # This tells Kubernetes your app listens on port 8080
+
+        # 🩺 Health Check (Readiness Probe)
+        # This section lets Kubernetes “ask” the app if it’s ready to receive traffic.
+        # It does that by calling /health on port 8080 every few seconds.
         readinessProbe:
           httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
+            path: /health     # The URL path inside the container to check
+            port: 8080        # The port to call
+          initialDelaySeconds: 5  # Wait 5 seconds before checking for the first time
+          periodSeconds: 5        # Check every 5 seconds thereafter

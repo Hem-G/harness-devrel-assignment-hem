@@ -1,6 +1,30 @@
-apiVersion: apps/v1
-kind: Deployment
+# -----------------------------------------------------------
+# 🧠 What this file does
+# -----------------------------------------------------------
+# This small patch customizes the Deployment for the **Production environment**.
+#
+# It tells Kubernetes:
+# “Use the same app setup as before (from the shared base),
+#  but in Production, keep 3 running copies (replicas) of the app.”
+#
+# The idea is simple:
+# - Dev runs 1 copy (just for testing)
+# - QA runs 2 copies (for team validation)
+# - Prod runs 3 copies (for real users — ensuring uptime and fault tolerance)
+# 
+# This file tells Kubernetes that in the Production environment,
+# there should always be 3 copies (replicas) of the app running.
+# 
+# This improves reliability — even if one instance fails, users don’t notice any downtime.
+# 
+# Each environment (Dev, QA, Prod) uses the same core configuration (from the base folder)
+# but overrides just the parts that differ — like the number of running replicas.
+# -----------------------------------------------------------
+
+apiVersion: apps/v1        # Using the same API as the base Deployment
+kind: Deployment            # We’re modifying a Deployment resource
 metadata:
-  name: myservice
+  name: myservice           # Matches the base Deployment name, so Kustomize knows what to patch
 spec:
-  replicas: 3 ## Prod
+  replicas: 3               # 🧩 Production runs 3 replicas for high availability and load handling
+                            # If one pod crashes or restarts, traffic is still served by others

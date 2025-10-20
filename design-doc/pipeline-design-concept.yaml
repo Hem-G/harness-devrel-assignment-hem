@@ -1,0 +1,91 @@
+# ------------------------------------------------------------
+# 📘 Harness Pipeline Design Concept — DevRel Assignment
+# ------------------------------------------------------------
+# This file is a *conceptual representation* of the actual
+# Harness CD pipeline created for the assignment.
+#
+# It describes the structure, sequence, and logic of the pipeline
+# that deploys the "myservice" microservice to Dev, QA, and Prod
+# Kubernetes environments.
+#
+# ⚠️ Note:
+# - This YAML is for documentation purposes only.
+# - The live pipeline was created and executed in the Harness UI.
+# - This file exists so reviewers can see how the pipeline is designed.
+# ------------------------------------------------------------
+
+pipeline:
+  name: harness-devrel-assignment-hem-pipeline
+  projectIdentifier: default_project
+  orgIdentifier: default
+  description: Deploys the myservice app to Dev, QA, and Prod environments using Harness CD.
+  stages:
+    # ------------------------------------
+    # Stage 1: Deploy to Development
+    # ------------------------------------
+    - name: Deploy to Dev
+      type: Deployment
+      spec:
+        service: myservice
+        environment: dev
+        execution:
+          steps:
+            - type: K8sDeploy
+              name: DeployToDev
+              spec:
+                manifests:
+                  - git:
+                      connectorRef: harnessdevrelassignmenthem
+                      path: k8s/overlays/dev
+                strategy: Rolling
+
+    # ------------------------------------
+    # Stage 2: Deploy to QA
+    # ------------------------------------
+    - name: Deploy to QA
+      type: Deployment
+      spec:
+        service: myservice
+        environment: qa
+        execution:
+          steps:
+            - type: K8sDeploy
+              name: DeployToQA
+              spec:
+                manifests:
+                  - git:
+                      connectorRef: harnessdevrelassignmenthem
+                      path: k8s/overlays/qa
+                strategy: Canary
+
+    # ------------------------------------
+    # Stage 3: Approve and Deploy to Production
+    # ------------------------------------
+    - name: Approve Prod Deployment
+      type: Approval
+      spec:
+        execution:
+          steps:
+            - type: ManualApproval
+              name: ProdApproval
+              spec:
+                approvers:
+                  - user: "team-lead@example.com"
+                  - user: "manager@example.com"
+                timeout: 48h
+
+    - name: Deploy to Prod
+      type: Deployment
+      spec:
+        service: myservice
+        environment: prod
+        execution:
+          steps:
+            - type: K8sDeploy
+              name: DeployToProd
+              spec:
+                manifests:
+                  - git:
+                      connectorRef: harnessdevrelassignmenthem
+                      path: k8s/overlays/prod
+                strategy: BlueGreen

@@ -1,16 +1,56 @@
-apiVersion: v1
-kind: Service
+# -----------------------------------------------------------
+# 🧠 What this file does
+# -----------------------------------------------------------
+# 
+# This file tells Kubernetes *how to give your app a stable internal address*.
+# 
+# This file creates a stable internal address called myservice inside Kubernetes.
+# It acts as a load-balancer that sends traffic to all healthy Pods labeled with
+# app: myservice and harness.io/color: blue.
+# 
+# Harness uses the harness.io/color label to manage Blue/Green deployments —
+# it can spin up a new (green) version while the old (blue) one keeps running,
+# then safely swap them when the new version passes tests and approvals. 
+#
+# When your app runs in Kubernetes, each Pod (container) can come and go —
+# for example, when new versions are deployed or when something crashes.
+#
+# A “Service” is like a permanent doorway (or a business card) for your app.
+# It hides the ever-changing Pod details behind one fixed name: "myservice".
+#
+# So, other apps in the cluster can always contact "myservice"
+# — no matter which Pod version is actually running.
+# -----------------------------------------------------------
+
+apiVersion: v1           # The version of the Kubernetes API for Services
+kind: Service            # This resource creates a "Service" object in Kubernetes
+
 metadata:
-  name: myservice
+  name: myservice        # The name of the Service (used by other apps to connect)
   labels:
-    app: myservice
-    harness.io/color: blue    # 👈 required for Blue/Green
+    app: myservice       # A label to identify this Service
+    harness.io/color: blue    # 💡 Special label used by Harness for Blue/Green deployments
+                              # "Blue" is the current active version.
+                              # Harness will create a "green" service for the new version
+                              # and swap them when it’s safe.
 
 spec:
+  # "ClusterIP" means the Service is reachable *inside* the Kubernetes cluster only.
+  # This is ideal for internal microservices or backend services.
   type: ClusterIP
+
+  # These labels decide which Pods this Service will route traffic to.
+  # In this case, it will send requests only to Pods that have BOTH labels:
+  #   app: myservice
+  #   harness.io/color: blue
   selector:
     app: myservice
-    harness.io/color: blue    # 👈 required for Blue/Green
+    harness.io/color: blue
+
+  # This section defines how the ports are connected:
+  # - Port 80 is what the Service listens on (the doorway)
+  # - It forwards everything to port 8080 inside your container
+  # - The protocol (TCP) defines the type of connection
   ports:
     - port: 80
       targetPort: 8080

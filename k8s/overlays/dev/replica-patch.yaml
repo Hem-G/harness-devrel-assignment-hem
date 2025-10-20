@@ -1,6 +1,26 @@
-apiVersion: apps/v1
-kind: Deployment
+# -----------------------------------------------------------
+# 🧠 What this file does
+# -----------------------------------------------------------
+# This file is a *patch* — it doesn’t create a whole new Deployment.
+# Instead, it tells Kubernetes (via Kustomize):
+# “Hey, when you’re building the Dev version of this app,
+#  change just one thing in the Deployment — the number of replicas.”
+#
+# In other words, this file *overrides* part of the base configuration.
+# 
+# This file tells Kubernetes that in the Dev environment,
+# only 1 copy (replica) of the app should run.
+# 
+# It’s a small “override” that modifies the shared base Deployment file.
+# That way, we don’t have to maintain separate YAML files for Dev, QA, and Prod —
+# each environment just changes what’s different (like replica count, image tag, or resource limits).
+# -----------------------------------------------------------
+
+apiVersion: apps/v1       # This patch targets the same API as the base Deployment
+kind: Deployment           # It’s modifying a Deployment resource
 metadata:
-  name: myservice
+  name: myservice          # This must match the base Deployment name (so Kustomize knows what to patch)
 spec:
-  replicas: 1 ## Dev
+  replicas: 1              # 🧩 This overrides the number of running pods for Dev
+                           # Dev only needs 1 replica to save resources
+                           # QA or Prod overlays will likely bump this up to 2 or 3

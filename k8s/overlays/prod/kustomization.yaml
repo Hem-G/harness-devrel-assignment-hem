@@ -1,11 +1,28 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
+# -----------------------------------------------------------
+# 🧠 What this file does
+# -----------------------------------------------------------
+# This file defines how to build the Kubernetes configuration for the Production environment.
+# It’s almost identical to the QA version, except:
+#   - It prefixes resource names with "prod-"
+#   - It applies the Prod replica patch (which sets replicas: 3)
+#
+# In other words:
+# “Take the base configuration and make a Production-ready version of it.”
+# 
+# This file creates the Production version of the Kubernetes setup by:
+# 1️⃣ Starting from the same shared base.
+# 2️⃣ Adding a “prod-” prefix to resource names (so it runs separately from QA or Dev).
+# 3️⃣ Applying a small patch that increases replicas to 3 for reliability and scaling.
+# -----------------------------------------------------------
+
+apiVersion: kustomize.config.k8s.io/v1beta1   # Kustomize API version
+kind: Kustomization                            # A Kustomize definition file
 
 resources:
-  - ../../base
+  - ../../base                                 # Reuse the common base setup (Deployment + Service)
 
-namePrefix: prod-
+namePrefix: prod-                              # 🧩 Prefix all resource names with "prod-" (e.g., myservice → prod-myservice)
+                                                # This ensures production resources don’t conflict with Dev or QA
 
 patches:
-  - path: replica-patch.yaml
-
+  - path: replica-patch.yaml                    # 🧩 Apply the Prod-specific patch (sets replicas: 3)

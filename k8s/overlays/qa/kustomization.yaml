@@ -1,11 +1,31 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
+# -----------------------------------------------------------
+# 🧠 What this file does
+# -----------------------------------------------------------
+# This file defines how to build the Kubernetes configuration for the QA environment.
+# It tells Kustomize:
+#   - Use the shared "base" setup (common to all environments)
+#   - Add "qa-" to the start of all resource names (so QA resources don’t clash with Dev or Prod)
+#   - Apply the QA-specific replica patch (to scale pods to 2 replicas)
+#
+# Essentially, this file says:
+# “Take the base setup and adjust it to create the QA version.”
+#
+# This file creates the QA version of the app’s Kubernetes setup by:
+# 1️⃣ Starting from the shared base files.
+# 2️⃣ Adding a “qa-” prefix to every resource name.
+# 3️⃣ Applying a small patch that sets the number of replicas to 2.
+# 
+# It ensures QA runs separately from Dev and Prod, while reusing the same base logic.
+# -----------------------------------------------------------
+
+apiVersion: kustomize.config.k8s.io/v1beta1   # The Kustomize API version
+kind: Kustomization                            # This is a Kustomization file — it tells Kustomize how to assemble manifests
 
 resources:
-  - ../../base
+  - ../../base                                 # Reuse everything from the shared base (Deployment, Service)
 
-namePrefix: qa-
+namePrefix: qa-                                # 🧩 Add "qa-" in front of every resource name (e.g., myservice → qa-myservice)
+                                                # This keeps QA isolated from other environments
 
 patches:
-  - path: replica-patch.yaml
-
+  - path: replica-patch.yaml                    # 🧩 Apply the QA-specific patch file (sets replicas: 2)
