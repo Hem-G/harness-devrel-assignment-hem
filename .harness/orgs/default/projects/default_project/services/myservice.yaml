@@ -28,7 +28,7 @@ service:
             - spec:
                 connectorRef: account.harnessImage
                 imagePath: ghcr.io/hem-g/myservice
-                tag: <+input>
+                tag: 0.1.0
                 digest: ""
               identifier: harnessdevrelassignmenthem
               type: DockerRegistry
