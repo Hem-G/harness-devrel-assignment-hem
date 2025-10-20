@@ -1,0 +1,53 @@
+# pipeline.yaml (simplified conceptual example)
+pipeline:
+  name: myservice-cd-pipeline
+  projectIdentifier: DemoProject
+  orgIdentifier: Default
+  stages:
+    - name: Deploy-Dev
+      type: Deployment
+      spec:
+        service: myservice-service
+        environment: dev
+        execution:
+          steps:
+            - type: K8sDeploy
+              name: DeployToDev
+              spec:
+                manifests:
+                  - git: { connectorRef: repo-connector, path: k8s/overlays/dev }
+                strategy: Rolling
+    - name: Deploy-QA
+      type: Deployment
+      spec:
+        service: myservice-service
+        environment: qa
+        execution:
+          steps:
+            - type: K8sDeploy
+              name: DeployToQA
+              spec:
+                manifests:
+                  - git: { connectorRef: repo-connector, path: k8s/overlays/qa }
+                strategy: Canary
+    - name: Deploy-Prod
+      type: Deployment
+      spec:
+        service: myservice-service
+        environment: prod
+        execution:
+          preDeployment:
+            - type: ManualApproval
+              name: Prod-Approval
+              spec:
+                approvers:
+                  - user: "team-lead@example.com"
+                  - user: "manager@example.com"
+                timeout: 48h
+          steps:
+            - type: K8sDeploy
+              name: DeployToProd
+              spec:
+                manifests:
+                  - git: { connectorRef: repo-connector, path: k8s/overlays/prod }
+                strategy: BlueGreen
