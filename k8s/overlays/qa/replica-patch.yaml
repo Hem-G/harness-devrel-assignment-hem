@@ -1,6 +1,25 @@
-apiVersion: apps/v1
-kind: Deployment
+# -----------------------------------------------------------
+# 🧠 What this file does
+# -----------------------------------------------------------
+# This is a small “patch” file that tells Kubernetes (via Kustomize):
+# “When you’re building the QA version of this app,
+#  change the number of running pods (replicas) to 2.”
+#
+# It doesn’t replace the entire Deployment — just updates one setting.
+# 
+# This file customizes the QA environment by setting the number of running copies (replicas) of the app to 2.
+# 
+# QA usually simulates real-world usage more closely than Dev,
+# so having 2 replicas allows testers to check load balancing, stability, and failover behavior.
+# 
+# Instead of duplicating the full Kubernetes Deployment file,
+# this patch just says: “keep everything the same as Dev, but scale it to 2 pods.”
+# -----------------------------------------------------------
+
+apiVersion: apps/v1       # Same API version as the base Deployment
+kind: Deployment           # We’re modifying a Deployment resource
 metadata:
-  name: myservice
+  name: myservice          # Must match the name from the base file so Kustomize knows what to modify
 spec:
-  replicas: 2 ## QA
+  replicas: 2              # 🧩 In QA, we want 2 replicas for better load testing and reliability
+                           # This ensures QA behaves more like production without wasting resources

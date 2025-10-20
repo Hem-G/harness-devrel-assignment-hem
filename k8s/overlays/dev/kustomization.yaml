@@ -1,11 +1,52 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
+# -----------------------------------------------------------
+# 🧠 What this file does
+# -----------------------------------------------------------
+# 
+# This file customizes the “base” Kubernetes setup for the Dev environment.
+# It keeps all the common setup (like container image, ports, and health checks)
+# but adds a dev- prefix to resource names and applies small tweaks (patches).
+# 
+# This lets you reuse the same blueprint for QA and Prod,
+# simply by creating different overlay folders with their own prefixes and patches.
+#
+# This file tells Kustomize:
+# “Take the *base blueprint* for my app (from ../../base)
+#  and make a Dev version of it.”
+#
+# The Dev version gets its own name prefix (“dev-”)
+# and small configuration tweaks from another file called replica-patch.yaml.
+#
+# So this is like taking a master recipe (base)
+# and adding a few ingredients to make a “Dev edition” of the dish.
+# -----------------------------------------------------------
 
+apiVersion: kustomize.config.k8s.io/v1beta1  # Version of Kustomize format
+kind: Kustomization                          # Declares this is a Kustomize overlay configuration
+
+# -----------------------------------------------------------
+# 🧩 Step 1: Reuse the Base Configuration
+# -----------------------------------------------------------
+# The base directory has the shared resources (deployment, service).
+# This overlay reuses them by pointing to the folder two levels up.
 resources:
   - ../../base
 
+# -----------------------------------------------------------
+# 🧩 Step 2: Add a Name Prefix
+# -----------------------------------------------------------
+# This adds “dev-” to the names of all generated Kubernetes resources.
+# For example:
+#   Deployment: myservice → dev-myservice
+#   Service: myservice → dev-myservice
+#
+# This helps distinguish Dev, QA, and Prod resources inside the same cluster.
 namePrefix: dev-
 
+# -----------------------------------------------------------
+# 🧩 Step 3: Apply a Patch File
+# -----------------------------------------------------------
+# The patch file (replica-patch.yaml) makes small environment-specific edits.
+# For Dev, that usually means fewer replicas (maybe just one),
+# or other low-resource tweaks suitable for testing environments.
 patches:
   - path: replica-patch.yaml
-

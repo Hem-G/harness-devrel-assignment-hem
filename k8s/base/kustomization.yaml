@@ -1,6 +1,40 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
+# -----------------------------------------------------------
+# 🧠 What this file does
+# -----------------------------------------------------------
+# 
+# This file tells Kubernetes (through Kustomize) how to *assemble*
+# the basic building blocks of your app before it’s deployed.
+# 
+# This file acts as the base blueprint for your application.
+# It tells Kubernetes to combine your deployment.yaml (how to run the app)
+# and service.yaml (how to expose the app) into one deployable package.
+# 
+# Later, environment-specific folders (like dev, qa, and prod)
+# add small “patch” files on top of this base to adjust settings —
+# for example, increasing replicas in production or adding version labels.
+#
+# Think of it like a “recipe” that combines all the core ingredients —
+# your Deployment and Service files — into one complete definition.
+#
+# Other environments (like Dev, QA, or Prod) can then “reuse” this recipe
+# and apply small differences on top — like scaling up replicas,
+# changing image versions, or adding labels.
+# -----------------------------------------------------------
 
+apiVersion: kustomize.config.k8s.io/v1beta1  # The version of Kustomize being used
+kind: Kustomization                          # Declares that this is a Kustomize configuration file
+
+# -----------------------------------------------------------
+# 🧩 The resources section
+# -----------------------------------------------------------
+# This section lists all the Kubernetes resource files (YAMLs)
+# that make up your base application.
+#
+# When you run "kubectl apply -k k8s/base", Kustomize will:
+#   - Load both of these files
+#   - Combine them into one big configuration
+#   - Apply any overrides or patches from environment overlays
+# -----------------------------------------------------------
 resources:
-  - deployment.yaml
-  - service.yaml
+  - deployment.yaml   # Defines how the app runs (the pods)
+  - service.yaml      # Defines how the app is accessed (the service)
