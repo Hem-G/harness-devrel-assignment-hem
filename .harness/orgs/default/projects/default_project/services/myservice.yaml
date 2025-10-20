@@ -31,5 +31,5 @@ service:
                 digest: ""
               identifier: harnessdevrelassignmenthemprimaryartifact
               type: DockerRegistry
-          primaryArtifactRef: <+input>
+          primaryArtifactRef: harnessdevrelassignmenthemprimaryartifact
     type: Kubernetes
