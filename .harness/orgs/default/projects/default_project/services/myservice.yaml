@@ -1,0 +1,34 @@
+service:
+  name: myservice
+  identifier: myservice
+  orgIdentifier: default
+  projectIdentifier: default_project
+  serviceDefinition:
+    spec:
+      manifests:
+        - manifest:
+            identifier: harnessDevrelAssignmentHem
+            type: Kustomize
+            spec:
+              store:
+                type: Github
+                spec:
+                  connectorRef: harnessdevrelassignmenthem
+                  gitFetchType: Branch
+                  folderPath: k8s/overlays/dev
+                  branch: main
+              pluginPath: ""
+              skipResourceVersioning: false
+              enableDeclarativeRollback: false
+      artifacts:
+        primary:
+          sources:
+            - spec:
+                connectorRef: ghcrharnessdevrelassignment
+                imagePath: hem-g/myservice
+                tag: 0.1.0
+                digest: ""
+              identifier: harnessdevrelassignmenthemprimaryartifact
+              type: DockerRegistry
+          primaryArtifactRef: harnessdevrelassignmenthemprimaryartifact
+    type: Kubernetes
