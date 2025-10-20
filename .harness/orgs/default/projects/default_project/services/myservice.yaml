@@ -8,19 +8,18 @@ service:
       manifests:
         - manifest:
             identifier: harnessDevrelAssignmentHem
-            type: K8sManifest
+            type: Kustomize
             spec:
               store:
                 type: Github
                 spec:
                   connectorRef: harnessdevrelassignmenthem
                   gitFetchType: Branch
-                  paths:
-                    - k8s/overlays/dev
+                  folderPath: k8s/overlays/dev
                   branch: main
+              pluginPath: ""
               skipResourceVersioning: false
               enableDeclarativeRollback: false
-              optionalValuesYaml: false
       artifacts:
         primary:
           sources:
