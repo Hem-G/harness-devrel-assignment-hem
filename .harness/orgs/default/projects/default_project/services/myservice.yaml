@@ -23,13 +23,13 @@ service:
               optionalValuesYaml: false
       artifacts:
         primary:
-          primaryArtifactRef: <+input>
           sources:
             - spec:
-                connectorRef: account.harnessImage
-                imagePath: ghcr.io/hem-g/myservice
+                connectorRef: ghcrharnessdevrelassignment
+                imagePath: hem-g/myservice
                 tag: 0.1.0
                 digest: ""
-              identifier: harnessdevrelassignmenthem
+              identifier: harnessdevrelassignmenthemprimaryartifact
               type: DockerRegistry
+          primaryArtifactRef: <+input>
     type: Kubernetes
