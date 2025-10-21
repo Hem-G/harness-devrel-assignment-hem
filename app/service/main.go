@@ -32,36 +32,22 @@ import (
 	"net/http" // A built-in Go library for creating web servers
 )
 
-func main() {
-	// This function runs first when the program starts
+func main() { // This function runs first when the program starts
 
-	// Here, we tell the web server what to do when someone visits "/"
+	// This rule adds a simple webpage called "/"
+	// When someone visits "/" (for example: http://localhost:8080/),
+	// the service will reply with the text "hello from myservice".
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// "w" is how we send information back to the person visiting
 		// We send back a friendly text message
 		fmt.Fprintf(w, "hello from myservice\n")
 	})
 
-	// Another rule: if someone visits "/health", respond with "ok"
+	// This rule adds another simple webpage called "/health"
+	// When someone visits "/health" (for example: http://localhost:8080/health),
 	// This is how monitoring systems check if the service is healthy
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "ok\n")
-	})
-
-	// This rule adds another simple webpage called "/version"
-	//
-	// When someone visits "/version" (for example: http://localhost:8080/version),
-	// the service will reply with the text "version 0.1.0".
-	//
-	// This is extremely useful in deployments — it helps us easily confirm
-	// which version of the application is running in each environment
-	// (for example, Dev, QA, or Production).
-	//
-	// Later, when you update your service and push a new Docker image
-	// (say version 0.2.0), you can visit "/version" in the browser or
-	// use `curl` to see which version got deployed.
-	http.HandleFunc("/version", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "version 0.1.0\n")
 	})
 
 	// Print this line to the console so we know the service started

@@ -13,6 +13,12 @@ This repository demonstrates a complete, production-ready Harness CD setup:
 Each file in this repo is self-documented with plain-English comments.
 You can browse in order (app/ → k8s/ → design-doc/) to see how the code, Kubernetes manifests, and Harness pipeline fit together.
 
+## 🧭 Reproducibility Notes
+
+- This repository is fully self-contained for building and testing the microservice locally.  
+- Harness pipelines are defined and executed in a private Harness account and is not available publicly.  
+- Pipeline structure and execution logs are included in the companion Google Doc.
+
 ---
 
 ## 🎯 Objectives of the Assignment
