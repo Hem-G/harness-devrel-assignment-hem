@@ -25,6 +25,7 @@ metadata:
   name: myservice      # The name of this Deployment
   labels:
     app: myservice     # A tag (label) used to identify related resources
+    harness.io/color: blue     # 👈 This label is required for Blue/Green deployment
 
 spec:
   replicas: 1          # Number of copies (pods) of the app to run (1 for now)
@@ -33,12 +34,14 @@ spec:
   selector:
     matchLabels:
       app: myservice
+      harness.io/color: blue     # 👈 Selector must exactly match the pod labels below
 
   # This section describes *how each pod should look*
   template:
     metadata:
       labels:
         app: myservice  # Label for the pod (used to connect to services below)
+        harness.io/color: blue     # 👈 Pods get this label so the Service can find them
 
     spec:
       # List of containers to run inside each pod
