@@ -46,7 +46,6 @@ You can browse in order (app/ → k8s/ → design-doc/) to see how the code, Kub
    - Endpoints:
      - `/` → main route returning `"hello from myservice"`.
      - `/health` → used by Kubernetes readiness and liveness probes.
-     - `/version` → returns `"version 0.1.0"` for traceable build info.
    - Simple, stateless design — ideal for demonstrating CI/CD flows.
 
 2. **Docker Image**
@@ -90,7 +89,6 @@ docker push ghcr.io/<your-username>/myservice:0.1.0
 ### 🚀 Deploy Locally to Dev
 
 ```bash
-Copy code
 kubectl apply -k k8s/overlays/dev
 kubectl get pods
 kubectl port-forward svc/dev-myservice 8080:80
@@ -98,13 +96,33 @@ curl http://localhost:8080/health
 ```
 
 ### 🔍 Verify
-
 ```bash
-Copy code
 kubectl get pods -A           # View running pods
 curl http://localhost:8080/   # Returns "hello from myservice"
-curl http://localhost:8080/version  # Returns "version 0.1.0"
+curl http://localhost:8080/health  # Returns "ok"
 ```
+
+### ⚠️ Note on Updating Deployments
+If you modify labels or selectors in your Kubernetes manifests (for example, when adding harness.io/color: blue for Blue/Green deployments), you may encounter this error when reapplying resources locally with Kustomize: `The Deployment "myservice" is invalid: spec.selector: Invalid value: {"matchLabels":{"app":"myservice","harness.io/color":"blue"}}: field is immutable`
+
+This happens because Kubernetes does not allow changing spec.selector on an existing Deployment — the selector determines which Pods the Deployment manages, and changing it could orphan or duplicate Pods.
+
+### ✅ How to fix it
+Delete the existing Deployment first, then reapply:
+
+```bash
+kubectl delete deployment <deployment-name>
+kubectl apply -k k8s/overlays/<environment>
+```
+
+### Example:
+
+```bash
+kubectl delete deployment prod-myservice
+kubectl apply -k k8s/overlays/prod
+```
+
+---
 
 ## 🧩 Harness Pipeline Overview
 
@@ -116,6 +134,8 @@ curl http://localhost:8080/version  # Returns "version 0.1.0"
 | **Deploy to Prod**          | Prod        | Blue/Green | Deploy new version alongside old, then swap traffic |
 
 Each stage deploys the same manifests but uses its own Kustomize overlay — ensuring isolated, reproducible environments.
+
+---
 
 ## 🧠 Design Rationale & Strategy
 Chosen Deployment Strategy:
@@ -135,6 +155,8 @@ Chosen Deployment Strategy:
         - Harness can directly map its environments to these overlays.
         - Enables clean promotion flows (Dev → QA → Prod).
 
+---
+
 ## 🩺 Verification Checklist
 
 ✅ Pipeline executed successfully across all stages (Dev, QA, Prod)
@@ -143,11 +165,141 @@ Chosen Deployment Strategy:
 ✅ /health and /version endpoints verified in all environments
 ✅ All connectors (Git, GHCR, K8s) tested successfully
 
-## 💬 Feedback on Harness Documentation
+---
 
-The official Harness “Deploy Your Own App” guide is an excellent starting point, but it could be improved by:
-- Adding troubleshooting steps for delegate-based K8s connectors.
-- Including examples for local Kind cluster integrations.
-- Explaining label requirements for Blue/Green (harness.io/color).
-- Providing sample manifests for simple apps like this one.
+## 🗣️ Detailed Feedback on Harness Documentation & User Experience
 
+As a new user with no prior DevOps experience, I found the Harness documentation very hard to navigate.  
+While it contains a lot of information, it lacks a clear, beginner-friendly flow from *sign-up* to *successful deployment*.  
+Below is a summary of key issues and improvement suggestions based on my real experience completing this assignment.
+
+### 🔹 1. No Complete "Start-to-Finish" Flow
+The documentation does not provide a single linear path that takes a new user from:
+**sign up → create project → set up connectors → delegate → secrets → services → environments → pipeline → successful deployment.**
+
+Each topic is explained in isolation. As a result, it’s unclear how the pieces connect.  
+Even the official “Deploy Your Own App” tutorial doesn’t follow a sequential, beginner-oriented flow.
+
+**Suggested Fix:**  
+Create a *single master tutorial* that follows the real onboarding journey:
+1. Sign up or log in to Harness
+2. Create a project (show UI)
+3. Add connectors (Git, Docker, Kubernetes)
+4. Set up the delegate (with local/Kind example)
+5. Create a service (attach manifests)
+6. Create environments (Dev/QA/Prod)
+7. Build and run a basic pipeline  
+Each step should have a **clear goal, expected result, and screenshot.**
+
+### 🔹 2. UI vs YAML Confusion
+Many guides say *“set this up in the UI”*, but then show only YAML examples.  
+Some pages use screenshots; others jump straight into YAML editing without context.  
+This is confusing for new users who are not yet comfortable with Harness-as-Code.
+
+**Suggested Fix:**  
+Every tutorial should:
+- Show **both** the UI path *and* the YAML equivalent.
+- Be clear upfront: “This section assumes you are using the visual builder” or “This uses YAML editing mode.”
+- Include consistent screenshots for the main stages — connectors, delegates, pipeline creation.
+
+### 🔹 3. Missing Reference Example (No Code or Sample App)
+The official docs explain *how Harness works*, but don’t give a working example repository or app.  
+For someone new to CI/CD, this means there’s no baseline to compare your setup with.
+
+**Suggested Fix:**  
+Provide a public sample repo with:
+- A tiny microservice (e.g., Go, Node.js, or Python)
+- Dockerfile and Kubernetes manifests
+- Example pipeline YAML or screenshots  
+Users should be able to fork it, follow the docs, and get a successful deployment within 30–45 minutes.
+
+### 🔹 4. Inconsistent and AI-Generated Style
+It’s clear that some doc pages were auto-generated or bulk-written by AI without proper editing.  
+Random words like **what** or **which** are in bold.  
+Tone and formatting vary between pages, and sometimes the same concept is explained differently in separate places.
+
+**Suggested Fix:**  
+Have a consistent technical writing style guide for docs:
+- Use imperative tone for instructions (“Click”, “Select”, “Run”)
+- Avoid unnecessary bolding or filler words
+- Keep all headings task-oriented (e.g., “Create a Delegate” instead of “About Delegates”)
+- Run human QA for readability and flow
+
+### 🔹 5. No Troubleshooting Guidance for Local or Kind Clusters
+Running a local Kind or Minikube cluster is common for testing.  
+However, the Harness docs assume everyone uses cloud clusters (EKS, GKE, AKS).  
+This made connecting the delegate very difficult.  
+Errors like *“Cannot invoke java.util.Map.getOrDefault”* or *“Unauthorized”* were undocumented.
+
+**Suggested Fix:**  
+Add a dedicated “Local Setup Guide” that explains:
+- How to connect a Docker-based delegate to a Kind/Minikube cluster
+- How to mount `~/.kube/config`
+- Common failure cases and how to debug them  
+(For example, localhost vs host.docker.internal connectivity issues.)
+
+### 🔹 6. Documentation Tone — Concept-Heavy, Not Task-Driven
+The docs spend more time describing *what* a connector or stage is, rather than *how* to set one up.  
+As a new user, I didn’t want definitions — I wanted a working example first, then explanations later.
+
+**Suggested Fix:**  
+Lead with practical steps (“do this”) and follow with explanations (“here’s why this works”).  
+In documentation design, this is called the **“show, then tell”** model — it keeps users engaged and helps them learn by doing.
+
+### 🔹 7. Missing FAQ or Troubleshooting Section
+During this project, I faced multiple issues:
+- Delegate connection failures
+- Kubeconfig authentication errors
+- YAML validation errors in connectors
+- Harness rejecting extra fields like `spec` under `InheritFromDelegate`
+None of these were documented or easy to search for.
+
+**Suggested Fix:**  
+Create a **FAQ / Troubleshooting Guide** for common errors, e.g.:
+- “Delegate cannot connect to K8s cluster”
+- “Unauthorized when testing connector”
+- “Cannot invoke java.util.Map.getOrDefault”
+Each FAQ should include cause, resolution steps, and a working example.
+
+### 🔹 8. Documentation Should Be Task-Oriented
+Right now, the docs feel like a product encyclopedia.  
+But developers approach docs with a *goal*, not to learn the product architecture.
+
+**Suggested Fix:**  
+Reorganize the docs by **tasks**, not by entities:
+| Goal | Link |
+|------|------|
+| Deploy my first app | Beginner tutorial |
+| Connect to Kubernetes | Connector setup |
+| Add an approval stage | Pipeline examples |
+| Debug delegate issues | Troubleshooting guide |
+
+### 🔹 9. Suggestion — Create a Real “Example Journey” Document
+We recommend that Harness publishes a **Google Doc or interactive guide** that walks users through:
+- Signing up
+- Creating the project (auto-created but explain the defaults)
+- Setting up all connectors in sequence
+- Deploying a working example app  
+It should follow the actual user journey and serve as a *realistic onboarding flow* — something new users can complete in under 1 hour.
+
+### 🧩 Summary of Improvements
+
+| Problem | Suggested Fix |
+|----------|----------------|
+| No linear start-to-finish guide | Add one complete tutorial |
+| YAML/UI inconsistency | Always show both methods |
+| No working repo | Provide a sample project |
+| Inconsistent style | Follow a doc style guide |
+| Missing local setup docs | Add Kind/Minikube examples |
+| Concept-heavy tone | Use “show then tell” writing |
+| No troubleshooting | Add FAQ section |
+| Scattered flow | Reorganize docs by tasks |
+
+### 🧠 Final Reflection
+Harness is a powerful platform — but its documentation currently assumes DevOps familiarity.  
+For developers, students, or DevRel users who are just getting started, the learning curve is steep.  
+Good docs should make *the first win easy* — right now, that win takes too long.
+
+With small structural and stylistic improvements, Harness can make its docs **dramatically more approachable, task-oriented, and rewarding for new users**.
+
+---
